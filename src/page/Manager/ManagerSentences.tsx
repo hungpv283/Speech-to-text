@@ -163,32 +163,6 @@ const ManagerSentences: React.FC = () => {
       render: (text: string) => <span className="text-gray-900">{text}</span>,
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'Status',
-      key: 'Status',
-      width: 150,
-      render: (status: number) => {
-        const statusConfig: { [key: number]: { color: string; label: string } } = {
-          0: { color: 'default', label: 'Chờ duyệt' },
-          1: { color: 'green', label: 'Đã duyệt' },
-          2: { color: 'blue', label: 'Đã thu âm' },
-          3: { color: 'red', label: 'Bị từ chối' },
-        };
-        const config = statusConfig[status] || { color: 'default', label: 'Unknown' };
-        return <Tag color={config.color}>{config.label}</Tag>;
-      },
-    },
-    {
-      title: 'Ngày tạo',
-      dataIndex: 'CreatedAt',
-      key: 'CreatedAt',
-      width: 180,
-      render: (date: string) => {
-        if (!date) return '-';
-        return new Date(date).toLocaleString('vi-VN');
-      },
-    },
-    {
       title: 'Hành động',
       key: 'action',
       width: 250,
@@ -247,6 +221,32 @@ const ManagerSentences: React.FC = () => {
           )}
         </Space>
       ),
+    },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'Status',
+      key: 'Status',
+      width: 150,
+      render: (status: number) => {
+        const statusConfig: { [key: number]: { color: string; label: string } } = {
+          0: { color: 'default', label: 'Chờ duyệt' },
+          1: { color: 'green', label: 'Đã duyệt' },
+          2: { color: 'blue', label: 'Đã thu âm' },
+          3: { color: 'red', label: 'Bị từ chối' },
+        };
+        const config = statusConfig[status] || { color: 'default', label: 'Unknown' };
+        return <Tag color={config.color}>{config.label}</Tag>;
+      },
+    },
+    {
+      title: 'Ngày tạo',
+      dataIndex: 'CreatedAt',
+      key: 'CreatedAt',
+      width: 180,
+      render: (date: string) => {
+        if (!date) return '-';
+        return new Date(date).toLocaleString('vi-VN');
+      },
     },
   ];
 
