@@ -201,50 +201,20 @@ const ManagerRecords: React.FC = () => {
       title: 'Nội dung câu',
       dataIndex: 'Content',
       key: 'Content',
-      width: 600,
+      width: 400,
       ellipsis: true,
       render: (content: string | null | undefined) => {
         return <span className="text-gray-900">{content || 'Unknown'}</span>;
       },
     },
-    // Ngày ghi column - hidden as per requirement
-    // {
-    //   title: 'Ngày ghi',
-    //   dataIndex: 'RecordedAt',
-    //   key: 'RecordedAt',
-    //   width: 180,
-    //   render: (date: string) => {
-    //     if (!date) return '-';
-    //     return new Date(date).toLocaleString('vi-VN');
-    //   },
-    // },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'IsApproved',
-      key: 'IsApproved',
-      width: 90,
-      fixed: 'right' as const,
-      align: 'right' as const,
-      render: (isApproved: number | boolean | null) => {
-        const statusConfig: { [key: number]: { color: string; label: string } } = {
-          0: { color: 'gold', label: 'Chờ duyệt' },
-          1: { color: 'green', label: 'Đã duyệt' },
-          2: { color: 'red', label: 'Bị từ chối' },
-          3: { color: 'orange', label: 'Trùng lặp' },
-        };
-        const status = typeof isApproved === 'number' ? isApproved : (isApproved ? 1 : 0);
-        const config = statusConfig[status] || { color: 'default', label: 'Unknown' };
-        return <Tag color={config.color}>{config.label}</Tag>;
-      },
-    },
     {
       title: 'Hành động',
       key: 'action',
-      width: 220,
+      width: 350,
       fixed: 'right' as const,
-      align: 'right' as const,
+      align: 'center' as const,
       render: (_: unknown, record: Recording) => (
-        <Space size="small">
+        <Space size={2} wrap>
           <Button
             type={playingId === record.RecordingID ? 'primary' : 'default'}
             icon={<PlayCircleOutlined />}
@@ -284,7 +254,7 @@ const ManagerRecords: React.FC = () => {
               className="rounded-full bg-orange-500 hover:bg-orange-600 border-orange-500 text-white"
               style={{ backgroundColor: '#f97316', borderColor: '#f97316' }}
             >
-              Sửa câu
+              Sửa
             </Button>
           )}
           <Popconfirm
@@ -306,6 +276,23 @@ const ManagerRecords: React.FC = () => {
           </Popconfirm>
         </Space>
       ),
+    },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'IsApproved',
+      key: 'IsApproved',
+      width: 100,
+      render: (isApproved: number | boolean | null) => {
+        const statusConfig: { [key: number]: { color: string; label: string } } = {
+          0: { color: 'gold', label: 'Chờ duyệt' },
+          1: { color: 'green', label: 'Đã duyệt' },
+          2: { color: 'red', label: 'Bị từ chối' },
+          3: { color: 'orange', label: 'Trùng lặp' },
+        };
+        const status = typeof isApproved === 'number' ? isApproved : (isApproved ? 1 : 0);
+        const config = statusConfig[status] || { color: 'default', label: 'Unknown' };
+        return <Tag color={config.color}>{config.label}</Tag>;
+      },
     },
   ];
 
@@ -482,7 +469,7 @@ const ManagerRecords: React.FC = () => {
                       setRefreshKey(prev => prev + 1);
                     },
                   }}
-                  scroll={{ x: 1200 }}
+                  scroll={{ x: 1300 }}
                 />
               ) : (
                 <Empty description="Chưa có bản ghi âm nào" style={{ marginTop: 50 }} />
