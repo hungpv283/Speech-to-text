@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Typography, Tag, Input, message, Spin, Modal, Alert } from 'antd';
-import { BookOutlined, PlusOutlined, AudioOutlined, ReloadOutlined, RightOutlined, LogoutOutlined, CheckOutlined, XFilled } from '@ant-design/icons';
+import { BookOutlined, PlusOutlined, AudioOutlined, ReloadOutlined, RightOutlined, LogoutOutlined, CheckOutlined, XFilled, EditOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/services/store/store';
 import {
@@ -13,7 +13,7 @@ import {
   fetchAvailableSentences,
   resetUserState
 } from '@/services/features/userSlice';
-import { uploadRecording, createUserSentence } from '@/services/features/recordingSlice';
+import { uploadRecording, createUserSentence, updateSentence } from '@/services/features/recordingSlice';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import AudioWaveform from '@/components/AudioWaveform';
 import RecordingWaveform from '@/components/RecordingWaveform';
@@ -40,6 +40,9 @@ const RecordingPage: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [submittingSentence, setSubmittingSentence] = useState(false);
+  const [isEditSentenceModalOpen, setIsEditSentenceModalOpen] = useState(false);
+  const [editingSentenceValue, setEditingSentenceValue] = useState<string>('');
+  const [savingSentenceEdit, setSavingSentenceEdit] = useState(false);
 
   const {
     isRecording,
@@ -191,6 +194,53 @@ const RecordingPage: React.FC = () => {
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
+  };
+
+  const openEditSentenceModal = () => {
+    if (mode !== 'existing') return;
+    if (!currentSentenceId) {
+      message.error('Không tìm thấy ID câu');
+      return;
+    }
+    if (audioUrl) {
+      message.info('Vui lòng nhấn "Thử lại" để reset bản ghi trước khi sửa câu.');
+      return;
+    }
+    setEditingSentenceValue(currentSentence || '');
+    setIsEditSentenceModalOpen(true);
+  };
+
+  const handleSaveEditedSentence = async () => {
+    if (!currentSentenceId) {
+      message.error('Không tìm thấy ID câu');
+      return;
+    }
+    const nextValue = editingSentenceValue.trim();
+    if (!nextValue) {
+      message.warning('Vui lòng nhập nội dung câu');
+      return;
+    }
+    if (nextValue === (currentSentence || '').trim()) {
+      setIsEditSentenceModalOpen(false);
+      return;
+    }
+
+    setSavingSentenceEdit(true);
+    try {
+      const res = await updateSentence(currentSentenceId, nextValue);
+      const updatedContent =
+        (res as any)?.Content ??
+        (res as any)?.content ??
+        nextValue;
+      dispatch(setCurrentSentence(updatedContent));
+      message.success('Đã cập nhật câu thành công');
+      setIsEditSentenceModalOpen(false);
+    } catch (error: unknown) {
+      const errAny = error as any;
+      message.error(errAny?.message ?? 'Không thể cập nhật câu. Vui lòng thử lại.');
+    } finally {
+      setSavingSentenceEdit(false);
+    }
   };
 
   const handleExit = () => {
@@ -367,12 +417,28 @@ const RecordingPage: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    <Tag
-                      color="blue"
-                      className="px-2 py-0.5 text-xs font-semibold rounded-full border-0 bg-blue-50 text-blue-600"
-                    >
-                      Câu {currentRecordingIndex + 1}
-                    </Tag>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={openEditSentenceModal}
+                        disabled={!currentSentenceId || isRecording || uploading || !!audioUrl}
+                        className="rounded-lg border border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-600"
+                        title={
+                          audioUrl
+                            ? 'Hãy nhấn "Thử lại" để reset bản ghi trước khi sửa câu'
+                            : 'Sửa câu (cập nhật qua API)'
+                        }
+                      >
+                        Sửa câu
+                      </Button>
+                      <Tag
+                        color="blue"
+                        className="px-2 py-0.5 text-xs font-semibold rounded-full border-0 bg-blue-50 text-blue-600"
+                      >
+                        Câu {currentRecordingIndex + 1}
+                      </Tag>
+                    </div>
                   </div>
                   <div className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
                     <Text className="text-lg md:text-xl text-gray-900 font-semibold leading-relaxed">
@@ -384,6 +450,35 @@ const RecordingPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        <Modal
+          title="Sửa câu"
+          open={isEditSentenceModalOpen}
+          onCancel={() => {
+            if (!savingSentenceEdit) setIsEditSentenceModalOpen(false);
+          }}
+          onOk={handleSaveEditedSentence}
+          okText={savingSentenceEdit ? 'Đang lưu...' : 'Lưu'}
+          cancelText="Hủy"
+          confirmLoading={savingSentenceEdit}
+          okButtonProps={{ disabled: savingSentenceEdit }}
+          cancelButtonProps={{ disabled: savingSentenceEdit }}
+          destroyOnClose
+        >
+          <Input.TextArea
+            rows={4}
+            value={editingSentenceValue}
+            onChange={(e) => setEditingSentenceValue(e.target.value)}
+            placeholder="Nhập nội dung câu bạn muốn chỉnh sửa..."
+            disabled={savingSentenceEdit}
+            className="rounded-xl border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:shadow-sm transition-all text-base"
+          />
+          <div className="mt-2">
+            <Text className="text-xs text-gray-500">
+              Lưu ý: Việc sửa câu sẽ cập nhật nội dung câu trên hệ thống.
+            </Text>
+          </div>
+        </Modal>
 
         {mode === 'new' && (
           <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl p-[1px] shadow-md">
