@@ -506,6 +506,7 @@ const ManagerUsers: React.FC = () => {
                     onClick={handleDownloadRecordings}
                     loading={downloadingRecordings}
                     className="!bg-green-600 !border-green-600 hover:!bg-green-700"
+                    style={{ display: 'none' }}
                   >
                     Download recording
                   </Button>
