@@ -421,7 +421,7 @@ const ManagerRecords: React.FC = () => {
                     }}
                   />
                 </div>
-                <Space size="small" style={{ display: 'none' }}>
+                <Space size="small">
                   <Button
                     type="default"
                     icon={<CheckCircleOutlined />}
