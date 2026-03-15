@@ -33,6 +33,7 @@ export interface User {
   /** Số câu ghi âm đã được duyệt */
   ApprovedRecordingsCount?: number;
   TotalContributedByUser?: number;
+  TotalApprovedRecordingDuration?:number;
   CreatedSentences?: Array<{
     SentenceID: string;
     Content: string;
