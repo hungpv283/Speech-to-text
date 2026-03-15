@@ -35,7 +35,6 @@ export interface User {
   /** Tổng thời gian (giây) của các câu đã duyệt */
   TotalApprovedRecordingDuration?: number;
   TotalContributedByUser?: number;
-  TotalApprovedRecordingDuration?:number;
   CreatedSentences?: Array<{
     SentenceID: string;
     Content: string;
