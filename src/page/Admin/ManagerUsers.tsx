@@ -243,6 +243,32 @@ const ManagerUsers: React.FC = () => {
       ),
     },
     {
+      title: 'Số câu duyệt',
+      dataIndex: 'ApprovedRecordingsCount',
+      key: 'ApprovedRecordingsCount',
+      width: 120,
+      align: 'center' as const,
+      sorter: (a: typeof users[number], b: typeof users[number]) => (a.ApprovedRecordingsCount ?? 0) - (b.ApprovedRecordingsCount ?? 0),
+      render: (count: number) => (
+        <Tag color="cyan" className="font-medium">
+          {count ?? 0} câu
+        </Tag>
+      ),
+    },
+    // {
+    //   title: 'Tổng thời gian',
+    //   dataIndex: 'TotalRecordingDuration',
+    //   key: 'TotalRecordingDuration',
+    //   width: 130,
+    //   align: 'center' as const,
+    //   sorter: (a: typeof users[number], b: typeof users[number]) => (a.TotalRecordingDuration ?? 0) - (b.TotalRecordingDuration ?? 0),
+    //   render: (seconds: number) => (
+    //     <Tag color="geekblue" className="font-medium">
+    //       {seconds != null && seconds > 0 ? `${Number(seconds).toFixed(2)}s` : '0s'}
+    //     </Tag>
+    //   ),
+    // },
+    {
       title: 'Số câu đã làm',
       dataIndex: 'TotalSentencesDone',
       key: 'TotalSentencesDone',
