@@ -236,7 +236,7 @@ const ManagerUsers: React.FC = () => {
       key: 'TotalApprovedRecordingDuration',
       width: 130,
       align: 'center' as const,
-      sorter: (a: any, b: any) => (a.TotalRecordingDuration ?? 0) - (b.TotalRecordingDuration ?? 0),
+      sorter: (a: any, b: any) => (a.TotalApprovedRecordingDuration ?? 0) - (b.TotalApprovedRecordingDuration ?? 0),
       render: (seconds: number) => (
         <Tag color="geekblue" className="font-medium">
           {seconds != null && seconds > 0 ? `${Number(seconds).toFixed(2)}s` : '0s'}
