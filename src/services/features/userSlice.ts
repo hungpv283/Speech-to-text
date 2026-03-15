@@ -30,6 +30,8 @@ export interface User {
   }>;
   TotalRecordingDuration?: number;
   TotalSentencesDone?: number;
+  /** Số câu ghi âm đã được duyệt */
+  ApprovedRecordingsCount?: number;
   TotalContributedByUser?: number;
   CreatedSentences?: Array<{
     SentenceID: string;
@@ -191,6 +193,8 @@ export const fetchUsers = createAsyncThunk<
       TotalRecordings?: number;
       TotalRecordingDuration?: number;
       TotalSentenceContributions?: number;
+      ApprovedRecordings?: number;
+      ApprovedRecordingsCount?: number;
       Recordings?: Array<{ SentenceID: string; Content: string; Duration?: number; RecordedAt?: string; AudioUrl?: string }>;
       SentenceContributions?: Array<{ SentenceID: string; Content: string; Status: number; CreatedAt: string }>;
       SentencesDone?: Array<{ SentenceID: string; Content: string }>;
@@ -204,6 +208,10 @@ export const fetchUsers = createAsyncThunk<
       CreatedAt: rawItem.CreatedAt ?? '',
       TotalRecordingDuration: rawItem.TotalRecordingDuration,
       TotalSentencesDone: rawItem.TotalRecordings, // Map TotalRecordings -> TotalSentencesDone
+      ApprovedRecordingsCount:
+        rawItem.ApprovedRecordingsCount ??
+        rawItem.ApprovedRecordings ??
+        undefined,
       TotalContributedByUser: rawItem.TotalSentenceContributions, // Map TotalSentenceContributions -> TotalContributedByUser
       // Map Recordings -> SentencesDone (câu đã làm/đã ghi âm)
       SentencesDone: rawItem.Recordings?.map((r) => ({
