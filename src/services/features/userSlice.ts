@@ -189,6 +189,7 @@ export const fetchUsers = createAsyncThunk<
     const rawItem = item as {
       PersonID?: string;
       Email?: string;
+      email?: string;
       Gender?: string;
       Role?: string;
       CreatedAt?: string;
@@ -206,6 +207,7 @@ export const fetchUsers = createAsyncThunk<
     return {
       PersonID: rawItem.PersonID ?? '',
       Email: rawItem.Email ?? rawItem.email ?? '',
+      email: rawItem.Email ?? rawItem.email ?? '', // lowercase for API compatibility
       Gender: rawItem.Gender ?? '',
       Role: rawItem.Role,
       CreatedAt: rawItem.CreatedAt ?? '',
