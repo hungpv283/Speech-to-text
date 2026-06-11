@@ -205,7 +205,7 @@ export const fetchUsers = createAsyncThunk<
     };
     return {
       PersonID: rawItem.PersonID ?? '',
-      Email: rawItem.Email ?? '',
+      Email: rawItem.Email ?? rawItem.email ?? '',
       Gender: rawItem.Gender ?? '',
       Role: rawItem.Role,
       CreatedAt: rawItem.CreatedAt ?? '',
