@@ -42,7 +42,7 @@ export const loginAdminWithPassword = async (username: string, password: string)
 export const loginAdmin = async (email: string): Promise<LoginResponse> => {
   try {
     const response = await axiosInstance.post<LoginResponse>(
-      "users/login",
+      "users-new/login",
       { email }
     );
     return response.data;
@@ -54,7 +54,7 @@ export const loginAdmin = async (email: string): Promise<LoginResponse> => {
 export const fetchUserData = async (userId: string): Promise<UserData> => {
   try {
     const response = await axiosInstance.get<{ data: UserData[] }>(
-      `users/${userId}`
+      `users-new/${userId}`
     );
     // API returns { data: [...] } so get first element
     if (Array.isArray(response.data)) {

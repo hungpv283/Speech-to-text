@@ -189,7 +189,7 @@ const ManagerRecords: React.FC = () => {
     }
     setApprovingAll(true);
     try {
-      const response = await axiosInstance.post('users/approve-recordings', {
+      const response = await axiosInstance.post('users-new/approve-recordings', {
         email: emailSearch,
       });
       const data = response.data;

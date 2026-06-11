@@ -63,9 +63,8 @@ const RecordingPage: React.FC = () => {
     }
 
     // Fetch available sentences when component mounts or userInfo changes
-    if (mode === 'existing') {
-      // Call the API endpoint (personId is not needed for the new endpoint)
-      dispatch(fetchAvailableSentences(''));
+    if (mode === 'existing' && userInfo?.userId) {
+      dispatch(fetchAvailableSentences(userInfo.userId));
     }
   }, [userInfo, dispatch, navigate, mode]);
 
@@ -119,7 +118,9 @@ const RecordingPage: React.FC = () => {
         const response = await uploadRecording(
           audioBlob,
           userInfo.userId,
-          currentSentenceId
+          currentSentenceId,
+          "content",
+          userInfo.email
         );
 
         if (response.success) {
@@ -144,7 +145,7 @@ const RecordingPage: React.FC = () => {
           await new Promise(resolve => setTimeout(resolve, 100));
 
           // Refresh available sentences to get updated list and move to next sentence
-          const updatedSentences = await dispatch(fetchAvailableSentences('')).unwrap();
+          const updatedSentences = await dispatch(fetchAvailableSentences(userInfo?.userId || '')).unwrap();
 
           if (updatedSentences.length > 0) {
             // Move to next available sentence
