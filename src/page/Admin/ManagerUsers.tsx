@@ -144,7 +144,7 @@ const ManagerUsers: React.FC = () => {
         emails,
         dateFrom: fromDate,
         dateTo: toDate,
-        isApproved: 1,
+        isApproved: undefined, // Download all recordings
       });
 
       // Create download link
