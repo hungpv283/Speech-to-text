@@ -188,6 +188,7 @@ export const fetchUsers = createAsyncThunk<
   const items: User[] = rawDataArray.map((item: unknown) => {
     const rawItem = item as {
       PersonID?: string;
+      _id?: string;
       Email?: string;
       email?: string;
       Gender?: string;
@@ -205,7 +206,7 @@ export const fetchUsers = createAsyncThunk<
       CreatedSentences?: Array<{ SentenceID: string; Content: string; Status: number; CreatedAt: string }>;
     };
     return {
-      PersonID: rawItem.PersonID ?? '',
+      PersonID: rawItem.PersonID ?? rawItem._id ?? '',
       Email: rawItem.Email ?? rawItem.email ?? '',
       email: rawItem.Email ?? rawItem.email ?? '', // lowercase for API compatibility
       Gender: rawItem.Gender ?? '',

@@ -460,13 +460,18 @@ export const downloadRecordings = async (
   params: DownloadRecordingsParams
 ): Promise<Blob> => {
   try {
+    const queryParams: Record<string, string> = {
+      emails: params.emails.join(','),
+    };
+    
+    if (params.dateFrom) queryParams.dateFrom = params.dateFrom;
+    if (params.dateTo) queryParams.dateTo = params.dateTo;
+    if (params.isApproved !== undefined && params.isApproved !== null) {
+      queryParams.isApproved = String(params.isApproved);
+    }
+    
     const response = await axiosInstance.get<Blob>("recordings-new-user/download-by-speaker", {
-      params: {
-        emails: params.emails.join(','),
-        dateFrom: params.dateFrom,
-        dateTo: params.dateTo,
-        isApproved: params.isApproved ?? 1,
-      },
+      params: queryParams,
       responseType: "blob",
     });
     return response.data;

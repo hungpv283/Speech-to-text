@@ -453,7 +453,7 @@ const ManagerRecords: React.FC = () => {
                   size="small"
                   columns={recordingColumns}
                   dataSource={recordings}
-                  rowKey={(record, index) => `${record.RecordingID}-${index}-${refreshKey}`}
+                  rowKey="RecordingID"
                   pagination={{
                     current: page,
                     pageSize: pageSize,

@@ -28,13 +28,14 @@ const ManagerUsers: React.FC = () => {
   const [topRecorders, setTopRecorders] = useState<TopRecorder[]>([]);
   const [loadingTopRecorders, setLoadingTopRecorders] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [selectedUserEmails, setSelectedUserEmails] = useState<string[]>([]);
+  const [downloadingRecordings, setDownloadingRecordings] = useState(false);
   
   // Local state for pagination - cập nhật ngay lập tức khi user thay đổi
   const [localPageSize, setLocalPageSize] = useState(usersLimit);
   
   // Force re-render when pageSize changes
   const [refreshKey, setRefreshKey] = useState(0);
-  const [downloadingRecordings, setDownloadingRecordings] = useState(false);
   const [sentencesModalVisible, setSentencesModalVisible] = useState(false);
   const [selectedUserSentences, setSelectedUserSentences] = useState<Array<{ SentenceID: string; Content: string; AudioUrl?: string; Duration?: number; RecordedAt?: string }>>([]);
   const [selectedUserEmail, setSelectedUserEmail] = useState('');
@@ -99,14 +100,40 @@ const ManagerUsers: React.FC = () => {
     }
   };
 
+  const handleSelectAllUsers = () => {
+    if (selectedUserIds.length === usersTotal) {
+      // Bỏ chọn tất cả
+      setSelectedUserIds([]);
+      setSelectedUserEmails([]);
+    } else {
+      // Chọn tất cả - cần fetch tất cả user IDs từ API
+      setDownloadingRecordings(true);
+      dispatch(fetchUsers({ 
+        page: 1, 
+        limit: usersTotal,
+        fromDate: dateRange[0] ? dateRange[0].toISOString() : undefined,
+        toDate: dateRange[1] ? dateRange[1].toISOString() : undefined,
+        email: emailFilter.trim() || undefined,
+      })).then((result: any) => {
+        if (fetchUsers.fulfilled.match(result)) {
+          const allUsers = result.payload?.users || [];
+          const allUserIds = allUsers.map((u: any) => u.PersonID) || [];
+          const allEmails = allUsers.map((u: any) => u.Email) || [];
+          setSelectedUserIds(allUserIds);
+          setSelectedUserEmails(allEmails);
+        }
+        setDownloadingRecordings(false);
+      });
+    }
+  };
+
   const handleDownloadRecordings = async () => {
-    if (selectedUserIds.length === 0) {
+    if (selectedUserEmails.length === 0) {
       message.warning('Vui lòng chọn ít nhất một người dùng');
       return;
     }
 
-    const selectedUsers = users.filter(u => selectedUserIds.includes(u.PersonID));
-    const emails = selectedUsers.map(u => u.Email);
+    const emails = selectedUserEmails;
     const fromDate = dateRange[0] ? dateRange[0].toISOString() : undefined;
     const toDate = dateRange[1] ? dateRange[1].toISOString() : undefined;
 
@@ -116,7 +143,7 @@ const ManagerUsers: React.FC = () => {
         emails,
         dateFrom: fromDate,
         dateTo: toDate,
-        isApproved: 1,
+        isApproved: undefined, // Download all recordings
       });
 
       // Create download link
@@ -163,31 +190,46 @@ const ManagerUsers: React.FC = () => {
 
   const columns = [
     {
-      title: <Checkbox 
-        checked={selectedUserIds.length === users.length && users.length > 0}
-        indeterminate={selectedUserIds.length > 0 && selectedUserIds.length < users.length}
-        onChange={(e) => {
-          if (e.target.checked) {
-            setSelectedUserIds(users.map(u => u.PersonID));
-          } else {
-            setSelectedUserIds([]);
-          }
-        }}
-      />,
+      title: <div onClick={(e) => e.stopPropagation()}>
+        <Checkbox
+          onChange={(e) => {
+            const currentPageIds = users.map(u => u.PersonID);
+            const currentPageEmails = users.map(u => u.Email);
+            if (e.target.checked) {
+              setSelectedUserIds(prev => {
+                const newIds = currentPageIds.filter(id => !prev.includes(id));
+                return [...prev, ...newIds];
+              });
+              setSelectedUserEmails(prev => {
+                const newEmails = currentPageEmails.filter(email => !prev.includes(email));
+                return [...prev, ...newEmails];
+              });
+            } else {
+              setSelectedUserIds(prev => prev.filter(id => !currentPageIds.includes(id)));
+              setSelectedUserEmails(prev => prev.filter(email => !currentPageEmails.includes(email)));
+            }
+          }}
+          checked={users.length > 0 && users.every(u => selectedUserIds.includes(u.PersonID))}
+          indeterminate={users.length > 0 && users.some(u => selectedUserIds.includes(u.PersonID)) && !users.every(u => selectedUserIds.includes(u.PersonID))}
+        />
+      </div>,
       width: 50,
       key: 'checkbox',
       render: (_: any, record: any) => (
-        <Checkbox 
-          checked={selectedUserIds.includes(record.PersonID)}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setSelectedUserIds([...selectedUserIds, record.PersonID]);
-            } else {
-              setSelectedUserIds(selectedUserIds.filter(id => id !== record.PersonID));
-            }
-          }}
-          onClick={(e) => e.stopPropagation()}
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={selectedUserIds.includes(record.PersonID)}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setSelectedUserIds(prev => [...prev, record.PersonID]);
+                setSelectedUserEmails(prev => [...prev, record.Email]);
+              } else {
+                setSelectedUserIds(prev => prev.filter(id => id !== record.PersonID));
+                setSelectedUserEmails(prev => prev.filter(email => email !== record.Email));
+              }
+            }}
+          />
+        </div>
       ),
     },
     {
@@ -466,23 +508,38 @@ const ManagerUsers: React.FC = () => {
                     </Button>
                   )}
                 </div>
-                <div className="ml-auto text-sm text-gray-500">
-                  {usersTotal > 0 ? (
-                    <span className="text-blue-600 font-medium">{usersTotal} người dùng</span>
-                  ) : (
-                    <span className="text-gray-400 italic">Không có người dùng nào</span>
-                  )}
+                <div className="ml-auto flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={handleSelectAllUsers}
+                      loading={downloadingRecordings}
+                      className="!border-blue-400 !text-blue-600 hover:!bg-blue-50"
+                    >
+                      {selectedUserIds.length === usersTotal ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                    </Button>
+                    {selectedUserIds.length > 0 && (
+                      <Tag color="blue" className="text-sm">
+                        Đã chọn: {selectedUserIds.length} người
+                      </Tag>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {usersTotal > 0 ? (
+                      <span className="text-blue-600 font-medium">{usersTotal} người dùng</span>
+                    ) : (
+                      <span className="text-gray-400 italic">Không có người dùng nào</span>
+                    )}
+                  </div>
+                  <Button 
+                    type="primary"
+                    icon={<DownloadOutlined />}
+                    onClick={handleDownloadRecordings}
+                    loading={downloadingRecordings}
+                    className="!bg-green-600 !border-green-600 hover:!bg-green-700"
+                  >
+                    Download recording
+                  </Button>
                 </div>
-                <Button 
-                  type="primary"
-                  icon={<DownloadOutlined />}
-                  onClick={handleDownloadRecordings}
-                  loading={downloadingRecordings}
-                  className="!bg-green-600 !border-green-600 hover:!bg-green-700"
-                  style={{ display: 'none' }}
-                >
-                  Download recording
-                </Button>
               </div>
 
               {usersLoading ? (
@@ -495,7 +552,7 @@ const ManagerUsers: React.FC = () => {
                     key={`table-${refreshKey}-${localPageSize}`}
                     columns={columns}
                     dataSource={users}
-                    rowKey={(record, index) => `${record.PersonID}-${index}-${refreshKey}`}
+                    rowKey="PersonID"
                     pagination={{
                       pageSize: localPageSize,
                       showSizeChanger: false,
@@ -559,7 +616,7 @@ const ManagerUsers: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {topRecorders.map((recorder, index) => (
                     <div
-                      key={recorder.userId}
+                      key={recorder.userId || recorder.email || index}
                       className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200 hover:shadow-md transition-shadow"
                     >
                       {/* Rank Badge */}
